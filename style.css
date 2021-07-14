@@ -1,8 +1,15 @@
 /* FONTS */
+@import url("https://fonts.googleapis.com/css2?family=Qahiri&display=swap");
 
 /* VARIABLES */
 :root {
-  --background: #1E2329;
+  --background: #1e2329;
+  --background-secondary: #4e5b6d;
+  --background-secondary-dark: #313942;
+  --white: #eee;
+  --red: #c62a3c;
+  --bomb-color: var(--background-secondary-dark);
+  --green: #2ac677;
 }
 
 /* RESET */
@@ -21,4 +28,28 @@ body {
 .wrapper {
   width: 100%;
   height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Grid */
+.grid {
+  background-color: var(--background-secondary-dark);
+  border-collapse: collapse;
+}
+
+.grid tbody tr td {
+  border: 2px solid var(--white);
+  width: 40px;
+  height: 40px;
+  /* color: var(--white); */
+  color: transparent;
+  font-family: "Qahiri", sans-serif;
+  font-size: 32px;
+  text-align: center;
+}
+
+.grid tbody tr td.bomb {
+  background-color: var(--bomb-color);
 }
