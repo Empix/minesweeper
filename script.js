@@ -69,6 +69,16 @@ function createTable() {
     result += "</tr>";
   }
   table.innerHTML = result;
+  addToggleFlagEventToTD();
+}
+
+function addToggleFlagEventToTD() {
+  document.querySelectorAll("td").forEach((td) => {
+    td.addEventListener("contextmenu", function (event) {
+      event.preventDefault();
+      this.classList.toggle("flagged");
+    });
+  });
 }
 
 function sleep(ms) {
