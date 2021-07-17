@@ -5,8 +5,6 @@ const gridHeight = 16;
 function init() {
   createGrid();
   createBombs();
-
-  console.log(grid);
   createTable();
 }
 
@@ -33,63 +31,22 @@ function createBombs() {
       bombsPosition.push(`${x}-${y}`);
       grid[x][y] = -1;
 
-      if (grid[x - 1] != undefined) {
-        if (grid[x - 1][y - 1] != undefined) {
-          if (grid[x - 1][y - 1] != -1) {
-            grid[x - 1][y - 1]++;
-          }
-        }
-      }
-      if (grid[x - 1] != undefined) {
-        if (grid[x - 1][y] != undefined) {
-          if (grid[x - 1][y] != -1) {
-            grid[x - 1][y]++;
-          }
-        }
-      }
-      if (grid[x - 1] != undefined) {
-        if (grid[x - 1][y + 1] != undefined) {
-          if (grid[x - 1][y + 1] != -1) {
-            grid[x - 1][y + 1]++;
-          }
-        }
-      }
+      generateHints({ x, y });
+    }
+  }
+}
 
-      if (grid[x + 1] != undefined) {
-        if (grid[x + 1][y - 1] != undefined) {
-          if (grid[x + 1][y - 1] != -1) {
-            grid[x + 1][y - 1]++;
-          }
-        }
-      }
-      if (grid[x + 1] != undefined) {
-        if (grid[x + 1][y] != undefined) {
-          if (grid[x + 1][y] != -1) {
-            grid[x + 1][y]++;
-          }
-        }
-      }
-      if (grid[x + 1] != undefined) {
-        if (grid[x + 1][y + 1] != undefined) {
-          if (grid[x + 1][y + 1] != -1) {
-            grid[x + 1][y + 1]++;
-          }
-        }
-      }
+function generateHints(bombPosition) {
+  for (let posX = -1; posX <= 1; posX++) {
+    for (let posY = -1; posY <= 1; posY++) {
+      if (posX == 0 && posY == 0) continue;
 
-      if (grid[x] != undefined) {
-        if (grid[x][y - 1] != undefined) {
-          if (grid[x][y - 1] != -1) {
-            grid[x][y - 1]++;
-          }
-        }
-      }
-      if (grid[x] != undefined) {
-        if (grid[x][y + 1] != undefined) {
-          if (grid[x][y + 1] != -1) {
-            grid[x][y + 1]++;
-          }
-        }
+      const x = bombPosition.x + posX;
+      const y = bombPosition.y + posY;
+
+      const value = grid[x]?.[y];
+      if (value != undefined && value != -1) {
+        grid[x][y]++;
       }
     }
   }
@@ -98,13 +55,13 @@ function createBombs() {
 const table = document.querySelector(".grid tbody");
 function createTable() {
   let result = "";
-  for (let y = 0; y < gridHeight; y++) {
+  for (let x = 0; x < gridHeight; x++) {
     result += "<tr>";
-    for (let x = 0; x < gridWidth; x++) {
+    for (let y = 0; y < gridWidth; y++) {
       if (grid[x][y] == -1) {
         result += `<td onclick="explode()" class="bomb">${grid[x][y]}</td>`;
       } else {
-        result += `<td class="pos${x}-${y}" onclick="openCell(${x}, ${y})">${
+        result += `<td class="pos${x}-${y}" onclick="openCell({ x: ${x}, y: ${y}})">${
           grid[x][y] || ""
         }</td>`;
       }
@@ -114,12 +71,23 @@ function createTable() {
   table.innerHTML = result;
 }
 
-function explode() {
-  document.documentElement.style.setProperty("--bomb-color", "var(--red)");
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function openCell(x, y) {
-  const cell = document.querySelector(`.pos${x}-${y}`);
+async function explode() {
+  document.documentElement.style.setProperty("--bomb-color", "var(--red)");
+  await sleep(50);
+  alert("Você perdeu!");
+  init();
+  document.documentElement.style.setProperty(
+    "--bomb-color",
+    "var(--background-secondary-dark)"
+  );
+}
+
+function openCell(position) {
+  const cell = document.querySelector(`.pos${position.x}-${position.y}`);
   const isOpen = cell.dataset.open;
 
   if (isOpen) return;
@@ -128,93 +96,24 @@ function openCell(x, y) {
   cell.style.backgroundColor = "var(--background-secondary)";
   cell.style.color = "var(--white)";
 
-  if (grid[x - 1] != undefined) {
-    if (grid[x - 1][y - 1] != undefined) {
-      if (grid[x - 1][y - 1] == 0) {
-        openCell(x - 1, y - 1);
-      } else {
-        const numCell = document.querySelector(`.pos${x - 1}-${y - 1}`);
-        numCell.style.backgroundColor = "var(--background-secondary)";
-        numCell.style.color = "var(--white)";
-      }
-    }
-  }
-  if (grid[x - 1] != undefined) {
-    if (grid[x - 1][y] != undefined) {
-      if (grid[x - 1][y] == 0) {
-        openCell(x - 1, y);
-      } else {
-        const numCell = document.querySelector(`.pos${x - 1}-${y}`);
-        numCell.style.backgroundColor = "var(--background-secondary)";
-        numCell.style.color = "var(--white)";
-      }
-    }
-  }
-  if (grid[x - 1] != undefined) {
-    if (grid[x - 1][y + 1] != undefined) {
-      if (grid[x - 1][y + 1] == 0) {
-        openCell(x - 1, y + 1);
-      } else {
-        const numCell = document.querySelector(`.pos${x - 1}-${y + 1}`);
-        numCell.style.backgroundColor = "var(--background-secondary)";
-        numCell.style.color = "var(--white)";
-      }
-    }
-  }
+  for (let posX = -1; posX <= 1; posX++) {
+    for (let posY = -1; posY <= 1; posY++) {
+      if (posX == 0 && posY == 0) continue;
 
-  if (grid[x + 1] != undefined) {
-    if (grid[x + 1][y - 1] != undefined) {
-      if (grid[x + 1][y - 1] == 0) {
-        openCell(x + 1, y - 1);
-      } else {
-        const numCell = document.querySelector(`.pos${x + 1}-${y - 1}`);
-        numCell.style.backgroundColor = "var(--background-secondary)";
-        numCell.style.color = "var(--white)";
-      }
-    }
-  }
-  if (grid[x + 1] != undefined) {
-    if (grid[x + 1][y] != undefined) {
-      if (grid[x + 1][y] == 0) {
-        openCell(x + 1, y);
-      } else {
-        const numCell = document.querySelector(`.pos${x + 1}-${y}`);
-        numCell.style.backgroundColor = "var(--background-secondary)";
-        numCell.style.color = "var(--white)";
-      }
-    }
-  }
-  if (grid[x + 1] != undefined) {
-    if (grid[x + 1][y + 1] != undefined) {
-      if (grid[x + 1][y + 1] == 0) {
-        openCell(x + 1, y + 1);
-      } else {
-        const numCell = document.querySelector(`.pos${x + 1}-${y + 1}`);
-        numCell.style.backgroundColor = "var(--background-secondary)";
-        numCell.style.color = "var(--white)";
-      }
-    }
-  }
+      const x = position.x + posX;
+      const y = position.y + posY;
 
-  if (grid[x] != undefined) {
-    if (grid[x][y - 1] != undefined) {
-      if (grid[x][y - 1] == 0) {
-        openCell(x, y - 1);
-      } else {
-        const numCell = document.querySelector(`.pos${x}-${y - 1}`);
-        numCell.style.backgroundColor = "var(--background-secondary)";
-        numCell.style.color = "var(--white)";
-      }
-    }
-  }
-  if (grid[x] != undefined) {
-    if (grid[x][y + 1] != undefined) {
-      if (grid[x][y + 1] == 0) {
-        openCell(x, y + 1);
-      } else {
-        const numCell = document.querySelector(`.pos${x}-${y + 1}`);
-        numCell.style.backgroundColor = "var(--background-secondary)";
-        numCell.style.color = "var(--white)";
+      const value = grid[x]?.[y];
+      if (value != undefined) {
+        if (value == 0) {
+          openCell({ x, y });
+        } else {
+          const numCell = document.querySelector(`.pos${x}-${y}`);
+          if (numCell) {
+            numCell.style.backgroundColor = "var(--background-secondary)";
+            numCell.style.color = "var(--white)";
+          }
+        }
       }
     }
   }
